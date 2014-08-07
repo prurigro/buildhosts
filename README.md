@@ -4,7 +4,7 @@ Build and maintain `/etc/hosts` while including lists imported from local and re
 
 ## Instructions ##
 
-**Note:** All instructions should be performed as the **root** user, or using the `sudo` command to run commands with **root** permissions.
+**Note:** All instructions should be performed as the **root** user or using the `sudo` command.
 
 ## Enable Remote Sources ##
 
@@ -16,7 +16,7 @@ Build and maintain `/etc/hosts` while including lists imported from local and re
 ## Disable Remote Sources ##
 
 1. To disable the configured hosts lists, run the `unset` command and `/etc/hosts.core` will be moved back to `/etc/hosts`.
-2. The `/etc/hosts.sources` file will continue to exist until it's manually deleted, and it will be used again the next time remote sources are enabled.
+* The `/etc/hosts.sources` file will continue to exist until it's manually deleted, and it will be used again the next time remote sources are enabled.
 
 ## Notes on /etc/hosts.sources ##
 
