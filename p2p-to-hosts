@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+
+if [[ -z "$1" ]] || [[ -z "$2" ]]; then
+    echo "Error: Run this scrip with a blocklist URL in p2p format and an output file as arguments"
+    exit 1
+fi
+
+P2PLIST=$(sed 's|^.*:||' < <(wget -q -O - "$1" | gunzip) | grep -E "^[0-9]*.[0-9]*.[0-9]*.[0-9]*-[0-9]*.[0-9]*.[0-9]*.[0-9]*$")
+[[ ! $(grep -E "^[0-9]*.[0-9]*.[0-9]*.[0-9]*-[0-9]*.[0-9]*.[0-9]*.[0-9]*$" <<< "$P2PLIST") ]] && echo "Error: The URL ${1} does not appear to contain a P2P-formatted blocklist" && exit 1
+
+for address_range in ${P2PLIST[@]}; do
+    IP1=$(cut -d '-' -f 1 <<< "$address_range")
+    IP1_1=$(cut -d '.' -f 1 <<< "$IP1")
+    IP1_2=$(cut -d '.' -f 2 <<< "$IP1")
+    IP1_3=$(cut -d '.' -f 3 <<< "$IP1")
+    IP1_4=$(cut -d '.' -f 4 <<< "$IP1")
+
+    IP2=$(cut -d '-' -f 2 <<< "$address_range")
+
+    echo "127.0.0.1 ${IP1_1}.${IP1_2}.${IP1_3}.${IP1_4}" >> "$2"
+    while [ ! "${IP1_1}.${IP1_2}.${IP1_3}.${IP1_4}" = "$IP2" ]; do
+        if [ "$IP1_4" -lt 255 ]; then
+            IP1_4=$(expr $IP1_4 + 1)
+        else
+            IP1_4=0
+            if [ "$IP1_3" -lt 255 ]; then
+                IP1_3=$(expr $IP1_3 + 1)
+            else
+                IP1_3=0
+                if [ "$IP1_2" -lt 255 ]; then
+                    IP1_2=$(expr $IP1_2 + 1)
+                else
+                    IP1_2=0
+                    if [ "$IP1_1" -lt 255 ]; then
+                        IP1_1=$(expr $IP1_1 + 1)
+                    else
+                        break
+                    fi
+                fi
+            fi
+        fi
+        echo "127.0.0.1 ${IP1_1}.${IP1_2}.${IP1_3}.${IP1_4}" >> "$2"
+    done
+done

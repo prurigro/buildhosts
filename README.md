@@ -31,6 +31,10 @@ Build and maintain `/etc/hosts` while including lists imported from local and re
 * `buildhosts unset`: remove lists imported from hosts list sources and restore `/etc/hosts`
 * `buildhosts help`: display the help
 
+## Extra ##
+
+* The `p2p-to-hosts` script included in this repo can be used to convert blocklists in p2p format to hosts format (usable with this package).
+
 ## Credits ##
 
 Written by Kevin MacMartin:

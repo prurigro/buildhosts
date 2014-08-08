@@ -73,8 +73,8 @@ fi
 function buildhosts_help(){
     echo -e "${HEADINGCOL} ${BUILDHOSTS_SCRIPT}:${RESETCOL} build and maintain /etc/hosts with local and remote hosts list files\n${HEADINGCOL} ${RESETCOL}"
     echo -e "${HEADINGCOL} commands:${RESETCOL}"
-    echo -e "${HEADINGCOL} ${RESETCOL}${SUCCESSCOL} ${BUILDHOSTS_SCRIPT} set:${RESETCOL} generate /etc/hosts using /etc/hosts.core and the configured sources"
-    echo -e "${HEADINGCOL} ${RESETCOL}${SUCCESSCOL} ${BUILDHOSTS_SCRIPT} unset:${RESETCOL} remove lists imported from hosts list sources and restore /etc/hosts"
+    echo -e "${HEADINGCOL} ${RESETCOL}${SUCCESSCOL} ${BUILDHOSTS_SCRIPT} set:${RESETCOL} add hosts lists to /etc/hosts"
+    echo -e "${HEADINGCOL} ${RESETCOL}${SUCCESSCOL} ${BUILDHOSTS_SCRIPT} unset:${RESETCOL} remove hosts lists from /etc/hosts"
     echo -e "${HEADINGCOL} ${RESETCOL}${SUCCESSCOL} ${BUILDHOSTS_SCRIPT} help:${RESETCOL} display this help"
     [[ "$1" -eq 1 ]] && exit 0
 }
