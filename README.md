@@ -21,7 +21,6 @@ Build and maintain `/etc/hosts` while including lists imported from local and re
 ## Notes on /etc/hosts.sources ##
 
 * On each line of `/etc/hosts.sources`, after `#` is commented/skipped.
-* Colour output can be disabled by setting the variable `NOCOL=1`.
 * The `$HOSTS_SYSTEM` variable can be set to an alternative location to configure a different file to be used for `/etc/hosts`.
 * Similarly, the `$HOSTS_CORE` and `$HOSTS_SOURCES` variables (which default to `$HOSTS_SYSTEM.core` and `$HOSTS_SYSTEM.sources` and will automatically change when `$HOSTS_SYSTEM` is changed), can be set to alternative locations to configure the use of different files.
 
@@ -30,6 +29,8 @@ Build and maintain `/etc/hosts` while including lists imported from local and re
 * `buildhosts build`: generate `/etc/hosts` using `/etc/hosts.core` and the configured sources
 * `buildhosts revert`: remove lists imported from hosts list sources and restore `/etc/hosts`
 * `buildhosts help`: display the help
+
+**Note**: Colour output can be disabled by setting the variable `NOCOL=1`.
 
 ## Extra ##
 
