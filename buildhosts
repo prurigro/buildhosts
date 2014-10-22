@@ -50,8 +50,8 @@
 
 # Default list of sources (used to generate $HOSTS_SOURCES when it doesn't exist)
 DEFAULT_SOURCES=(
+    'https://adaway.org/hosts.txt'
     'http://winhelp2002.mvps.org/hosts.txt'
-    'http://adaway.org/hosts.txt'
     'http://hosts-file.net/ad_servers.txt'
     'http://pgl.yoyo.org/adservers/serverlist.php?hostformat=hosts&showintro=0&mimetype=plaintext'
 )
@@ -100,7 +100,7 @@ function buildhosts_build() {
     fi
 
     # Fail if $HOSTS_SOURCES contains no sources after trimming comments
-    [[ -n $(sed 's|^\ *#.*$||' "$HOSTS_SOURCES" | tr -d "\n") ]] || buildhosts_error "No sources available in ${HOSTS_SOURCES}"
+    [[ -n $(sed 's|^\ *#.*$||' "$HOSTS_SOURCES" | tr -d "\n") ]] || buildhosts_error "${HOSTS_SOURCES} doesn't contain any sources"
 
     # If $HOSTS_CORE doesn't exist and $HOSTS_SYSTEM does, move $HOSTS_SYSTEM to $HOSTS_CORE
     if [ -f "$HOSTS_SYSTEM" -a ! -f "$HOSTS_CORE" ]; then
@@ -132,51 +132,51 @@ function buildhosts_build() {
                                 s|^\ *[^1].*$||' <<< "$TMPHOSTS"))
 
     # Add the system hosts file to the hosts list and warn if $HOSTS_CORE is missing
-    echo -e "${HEADINGCOL} Writing: ${RESETCOL} ${HOSTS_CORE} and $(wc -l <<< "$TMPHOSTS") host source entries to ${HOSTS_SYSTEM}"
+    echo -e "${HEADINGCOL} WRITING: ${RESETCOL} ${HOSTS_CORE} and $(wc -l <<< "$TMPHOSTS") host source entries to ${HOSTS_SYSTEM}"
     [[ -f "$HOSTS_CORE" ]] \
         && TMPHOSTS=$(cat "$HOSTS_CORE")$(echo -e "\n\n# Generated Host List (${BUILDHOSTS_SCRIPT})")${TMPHOSTS} \
-        || echo -e "${HEADINGCOL} ${RESETCOL}${FAILCOL} Warning:${RESETCOL} Core hosts file ${HOSTS_CORE} does not exist"
+        || echo -e "${HEADINGCOL} ${RESETCOL}${FAILCOL} WARNING:${RESETCOL} core hosts file ${HOSTS_CORE} does not exist"
 
     # Write $TMPHOSTS to $HOSTS_SYSTEM if it's not empty
     [[ -n "$TMPHOSTS" ]] && echo -e "$TMPHOSTS" > "$HOSTS_SYSTEM"
     if [[ -n $(cat "$HOSTS_SYSTEM") ]]; then
-        echo -e "${HEADINGCOL} ${RESETCOL}${SUCCESSCOL} Done! ${RESETCOL}"
+        echo -e "${HEADINGCOL} ${RESETCOL}${SUCCESSCOL} DONE! ${RESETCOL}"
     else
-        echo -e "${HEADINGCOL} ${RESETCOL}${FAILCOL} Failed... ${RESETCOL} (reverting hosts file)"
+        echo -e "${HEADINGCOL} ${RESETCOL}${FAILCOL} FAILED... ${RESETCOL} (reverting hosts file)"
         cp "$MAINHOSTS" "$HOSTS_SYSTEM"
-        buildhosts_error "The generated hosts file @ ${HOSTS_SYSTEM} could not be created"
+        buildhosts_error "${HOSTS_SYSTEM} could not be created"
         exit 1
     fi
 }
 
 function buildhosts_revert() {
     # Fail if $HOSTS_CORE doesn't exist
-    [[ -f "$HOSTS_CORE" ]] || buildhosts_error "The core file ${HOSTS_CORE} does not exist, cannot revert"
+    [[ -f "$HOSTS_CORE" ]] || buildhosts_error "${HOSTS_CORE} does not exist, cannot revert"
 
     # Fail if $HOSTS_CORE is empty when all comments are removed
-    [[ -n $(sed 's|^\ *#.*$||' "$HOSTS_CORE" | tr -d "\n") ]] || buildhosts_error "The core file ${HOSTS_CORE} contains no information, cannot revert"
+    [[ -n $(sed 's|^\ *#.*$||' "$HOSTS_CORE" | tr -d "\n") ]] || buildhosts_error "${HOSTS_CORE} contains no information, cannot revert"
 
     # Move $HOSTS_CORE to $HOSTS_SYSTEM
-    echo -e "${HEADINGCOL} Moving:${RESETCOL} ${HOSTS_CORE} to ${HOSTS_SYSTEM}"
+    echo -e "${HEADINGCOL} MOVING:${RESETCOL} ${HOSTS_CORE} to ${HOSTS_SYSTEM}"
     mv "$HOSTS_CORE" "$HOSTS_SYSTEM" \
-        && echo -e "${HEADINGCOL} ${RESETCOL}${SUCCESSCOL} Done!${RESETCOL}" \
-        || buildhosts_error "Could not move ${HOSTS_CORE} to ${HOSTS_SYSTEM}"
+        && echo -e "${HEADINGCOL} ${RESETCOL}${SUCCESSCOL} DONE!${RESETCOL}" \
+        || buildhosts_error "${HOSTS_CORE} could not be moved to ${HOSTS_SYSTEM}"
 }
 
 # Fail if the user isn't root
-[[ $EUID -eq 0 ]] || buildhosts_error "You must run ${BUILDHOSTS_SCRIPT} as root"
+[[ $EUID -eq 0 ]] || buildhosts_error "${BUILDHOSTS_SCRIPT} must be run as root"
 
 # Fail if run with no commands
-[[ -n "$1" ]] || buildhosts_error "You must run ${BUILDHOSTS_SCRIPT} with a valid argument" 1
+[[ -z "$1" ]] && echo -e "please run with a valid command\n" && buildhosts_help 1
 
 case "$1" in
-    build)
+    build|--build)
         buildhosts_build
         ;;
-    revert)
+    revert|--revert)
         buildhosts_revert
         ;;
-    help)
+    help|--help|-h)
         buildhosts_help 1
         ;;
     *)
