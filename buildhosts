@@ -69,9 +69,9 @@ function buildhosts_help(){
 
 # Error function: display error then exit unsuccessfully
 function buildhosts_error() {
-    printf "$c_heading $c_fail%s$c_fail %s$c_reset\n" ' ! ERROR:' "$1" 2>&1
+    printf "$c_heading $c_fail%s$c_fail %s$c_reset\n" ' ! ERROR:' "$1" >&2
     [[ "$2" -eq 1 ]] && {
-        printf '\n'
+        printf '\n' >&2
         buildhosts_help
     }
     exit 1
