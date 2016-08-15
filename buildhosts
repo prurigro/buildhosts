@@ -10,20 +10,15 @@
 # Unset variables we don't expect
 while read -r; do
     [[ "$REPLY" =~ ^(HOSTS_DIR|HOSTS_SYSTEM|HOSTS_CORE|HOSTS_SOURCES|HOSTS_WHITELIST|UID|HOME|PATH|SHELL|TERM|PWD|SHLVL|_)= ]] \
-        || unset ${REPLY/=*}
+        || unset "${REPLY/=*}"
 done < <(env)
 
 # User variables
-[[ -z "$HOSTS_DIR" ]] \
-    && HOSTS_DIR="/etc"
-[[ -z "$HOSTS_SYSTEM" ]] \
-    && HOSTS_SYSTEM="$HOSTS_DIR/hosts"
-[[ -z "$HOSTS_CORE" ]] \
-    && HOSTS_CORE="${HOSTS_SYSTEM}.core"
-[[ -z "$HOSTS_SOURCES" ]] \
-    && HOSTS_SOURCES="${HOSTS_SYSTEM}.sources"
-[[ -z "$HOSTS_WHITELIST" ]] \
-    && HOSTS_WHITELIST="${HOSTS_SYSTEM}.whitelist"
+[[ -z "$HOSTS_DIR" ]] && HOSTS_DIR="/etc"
+[[ -z "$HOSTS_SYSTEM" ]] && HOSTS_SYSTEM="$HOSTS_DIR/hosts"
+[[ -z "$HOSTS_CORE" ]] && HOSTS_CORE="${HOSTS_SYSTEM}.core"
+[[ -z "$HOSTS_SOURCES" ]] && HOSTS_SOURCES="${HOSTS_SYSTEM}.sources"
+[[ -z "$HOSTS_WHITELIST" ]] && HOSTS_WHITELIST="${HOSTS_SYSTEM}.whitelist"
 
 # Default list of sources (used to generate $HOSTS_SOURCES when it doesn't exist)
 default_sources=(
@@ -39,7 +34,7 @@ script_dependencies=('curl' 'sed')
 script_name="${0//*\/}"
 
 # Configure colours
-if [ -t 1 ]; then
+if [[ -t 1 ]]; then
     c_script='\e[1;35m'
     c_category='\e[1;33m'
     c_title='\e[1;34m'
@@ -55,35 +50,35 @@ else
 fi
 
 # Help function: display help text
-function buildhosts_help(){
+function buildhosts_help {
     printf "$c_text%s$c_reset%s\n" 'BuildHosts' ': Download and use custom hosts sources to build /etc/hosts'
     printf "\n$c_title%s$c_reset\n" 'USAGE'
-    printf "  $c_script%s$c_reset [$c_category%s$c_clear]\n" "$script_name" 'COMMAND'
+    printf "  $c_script%s$c_reset [$c_category%s$c_reset]\n" "$script_name" 'COMMAND'
     printf "\n$c_title%s$c_reset\n" 'COMMANDS'
-    printf "  $c_option%s$c_reset  $c_divider| $c_text%s$c_clear\n" 'build' 'add hosts lists to /etc/hosts'
-    printf "  $c_option%s$c_reset $c_divider| $c_text%s$c_clear\n" 'revert' 'remove hosts lists from /etc/hosts'
-    printf "  $c_option%s$c_reset   $c_divider| $c_text%s$c_clear\n" 'help' 'display this help'
-    [[ "$1" -eq 1 ]] \
-        && exit 0
+    printf "  $c_option%s$c_reset  $c_divider| $c_text%s$c_reset\n" 'build' 'add hosts lists to /etc/hosts'
+    printf "  $c_option%s$c_reset $c_divider| $c_text%s$c_reset\n" 'revert' 'remove hosts lists from /etc/hosts'
+    printf "  $c_option%s$c_reset   $c_divider| $c_text%s$c_reset\n" 'help' 'display this help'
+    (( $1 )) && exit 0
 }
 
 # Error function: display error then exit unsuccessfully
-function buildhosts_error() {
+function buildhosts_error {
     printf "$c_heading $c_fail%s$c_fail %s$c_reset\n" ' ! ERROR:' "$1" >&2
+
     [[ "$2" -eq 1 ]] && {
         printf '\n' >&2
         buildhosts_help
     }
+
     exit 1
 }
 
-function buildhosts_rootcheck() {
-    [[ $UID = 0 ]] \
-        || buildhosts_error "$script_name must be run as root"
+function buildhosts_rootcheck {
+    (( UID )) && buildhosts_error "$script_name must be run as root"
 }
 
 # The build function to generate or regenerate /etc/hosts using /etc/hosts.core and the list of sources
-function buildhosts_build() {
+function buildhosts_build {
     # If $HOSTS_SOURCES doesn't exist, generate one using the default list of sources
     if [[ ! -f "$HOSTS_SOURCES" ]]; then
         # Fail if the user isn't root when $HOSTS_DIR or  isn't writable
@@ -113,11 +108,12 @@ function buildhosts_build() {
     # If $HOSTS_CORE doesn't exist and $HOSTS_SYSTEM does, move $HOSTS_SYSTEM to $HOSTS_CORE
     [[ -f "$HOSTS_SYSTEM" ]] && [[ ! -f "$HOSTS_CORE" ]] && {
         printf "$c_heading %s $c_reset %s\n" 'Moving:' "$HOSTS_SYSTEM to $HOSTS_CORE"
-        cp "$HOSTS_SYSTEM" "$HOSTS_CORE"
+        install -Dm644 "$HOSTS_SYSTEM" "$HOSTS_CORE"
     }
 
     # Generate the hosts list using the URLs in the $HOSTS_SOURCES
     unset temp_hosts
+
     while read -r source; do
         [[ -n "$source" ]] && {
             printf "$c_heading %s $c_reset $source\n" 'Downloading:'
@@ -132,42 +128,44 @@ function buildhosts_build() {
                 && source_data=$(printf '\n%s\n' "$source_data")
 
             # Strip comments, then add the source to the end of $temp_hosts
-            temp_hosts=$temp_hosts$(sed 's|\ *#.*$||' <<< "$source_data")
+            temp_hosts="$temp_hosts$(sed 's|\ *#.*$||' <<< "$source_data")"
         }
     done < <(sed 's|^\ *#.*$||' "$HOSTS_SOURCES")
 
     # Sort and remove duplicates, change 0.0.0.0 to 127.0.0.1, and remove non-127.0.0.1 redirections
-    temp_hosts=$(sort -u < <(sed 's|\t| |;s|^\ *[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*|127\.0\.0\.1|;
-        s|^127\.0\.0\.1\ \ *localhost\ *$||;
-        s|^\ *[^1].*$||' <<< "$temp_hosts"))
+    temp_hosts="$(sort -u < <(sed 's|\t| |;s|^\ *[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*|127\.0\.0\.1|;s|^127\.0\.0\.1\ \ *localhost\ *$||;s|^\ *[^1].*$||' <<< "$temp_hosts"))"
 
     # Add the system hosts file to the hosts list and warn if $HOSTS_CORE is missing
     printf "$c_heading %s $c_reset %s\n" 'WRITING:' "$HOSTS_CORE and $(wc -l <<< "$temp_hosts") host source entries to $HOSTS_SYSTEM"
-    [[ -f "$HOSTS_CORE" ]] \
-        && temp_hosts=$(<"$HOSTS_CORE")$(printf '\n\n%s\n' "# Generated Host List ($script_name)")$temp_hosts \
-        || printf "$c_heading $c_fail %s$c_reset %s" 'WARNING:' "core hosts file $HOSTS_CORE does not exist"
+
+    if [[ -f "$HOSTS_CORE" ]]; then
+        temp_hosts="$(<"$HOSTS_CORE")$(printf '\n\n%s\n' "# Generated Host List ($script_name)")$temp_hosts"
+    else
+        printf "$c_heading $c_fail %s$c_reset %s" 'WARNING:' "core hosts file $HOSTS_CORE does not exist"
+    fi
 
     # Exclude domains in the whitelist
     [[ -f "$HOSTS_WHITELIST" ]] && {
         while read -r; do
-            temp_hosts=$(sed '/^'$REPLY'/d' /etc/hosts <<< "$temp_hosts")
+            temp_hosts="$(sed "/^[0-9][0-9\.]*[0-9] $REPLY/d" <<< "$temp_hosts")"
         done <"$HOSTS_WHITELIST"
     }
 
     # Write $temp_hosts to $HOSTS_SYSTEM if it's not empty
     [[ -n "$temp_hosts" ]] \
         && printf '%s\n' "$temp_hosts" > "$HOSTS_SYSTEM"
+
     if [[ -n $(<"$HOSTS_SYSTEM") ]]; then
         printf "$c_heading $c_success %s $c_reset\n" 'DONE!'
     else
         printf "$c_heading $c_fail %s $c_reset %s\n" 'FAILED...' '(reverting hosts file)'
-        cp "$HOSTS_CORE" "$HOSTS_SYSTEM"
+        install -Dm644 "$HOSTS_CORE" "$HOSTS_SYSTEM"
         buildhosts_error "$HOSTS_SYSTEM could not be created"
         exit 1
     fi
 }
 
-function buildhosts_revert() {
+function buildhosts_revert {
     # Fail if $HOSTS_CORE doesn't exist
     [[ -f "$HOSTS_CORE" ]] \
         || buildhosts_error "$HOSTS_CORE does not exist, cannot revert"
@@ -178,26 +176,35 @@ function buildhosts_revert() {
 
     # Move $HOSTS_CORE to $HOSTS_SYSTEM
     printf "$c_heading %s$c_reset %s\n" 'MOVING:' "$HOSTS_CORE to $HOSTS_SYSTEM"
-    mv "$HOSTS_CORE" "$HOSTS_SYSTEM" \
-        && printf "$c_heading $c_success %s$c_reset\n" 'DONE!' \
-        || buildhosts_error "$HOSTS_CORE could not be moved to $HOSTS_SYSTEM"
+
+    if mv "$HOSTS_CORE" "$HOSTS_SYSTEM"; then
+        printf "$c_heading $c_success %s$c_reset\n" 'DONE!'
+    else
+        buildhosts_error "$HOSTS_CORE could not be moved to $HOSTS_SYSTEM"
+    fi
 }
 
-# Test for programs required by this script before running
-for dep in ${script_dependencies[@]}; do
-    [[ $(type -P "$dep") ]] || {
-        [[ -n "$missing_dependencies" ]] \
-            && missing_dependencies="$missing_dependencies,"
-        missing_dependencies="$missing_dependencies $dep"
-    }
+# Check for missing dependencies and fail if any exist
+declare -a missing_dependencies=()
+
+for dep in "${script_dependencies[@]}"; do
+    type -P "$dep" >/dev/null \
+        || missing_dependencies=( ${missing_dependencies[@]} "$dep" )
 done
-[[ -n "$missing_dependencies" ]] \
-    && buildhosts_error "Missing dependencies:$missing_dependencies"
+
+[[ -n "${missing_dependencies[*]}" ]] && {
+    buildhosts_error "Missing dependencies: $(
+        for (( x=0; x < ${#missing_dependencies[@]}; x++ )); do
+            printf '%s' "${missing_dependencies[$x]}"
+            (( (( x + 1 )) < ${#missing_dependencies[@]} )) && printf '%s' ', '
+        done
+    )"
+}
 
 # Fail if run with no commands
-[[ -z "$1" ]] \
-    && buildhosts_error "A valid command must be provided" 1
+[[ -z "$1" ]] && buildhosts_error "A valid command must be provided" 1
 
+# Run the command entered by the user
 case "$1" in
     build)
         buildhosts_build
