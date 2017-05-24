@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+
 #
 #  BuildHosts: Download & use custom hosts sources to build /etc/hosts
 #
@@ -84,7 +85,7 @@ function buildhosts_build {
         # Fail if the user isn't root when $HOSTS_DIR or  isn't writable
         if [[ ! -w "$HOSTS_DIR" ]]; then
             buildhosts_rootcheck
-        elif [ -f "$HOSTS_SYSTEM" ] && [ ! -w "$HOSTS_SYSTEM" ]; then
+        elif [[ -f "$HOSTS_SYSTEM" && ! -w "$HOSTS_SYSTEM" ]]; then
             buildhosts_rootcheck
         fi
 
@@ -106,7 +107,7 @@ function buildhosts_build {
         || buildhosts_error "$HOSTS_SOURCES doesn't contain any sources"
 
     # If $HOSTS_CORE doesn't exist and $HOSTS_SYSTEM does, move $HOSTS_SYSTEM to $HOSTS_CORE
-    [[ -f "$HOSTS_SYSTEM" ]] && [[ ! -f "$HOSTS_CORE" ]] && {
+    [[ -f "$HOSTS_SYSTEM" && ! -f "$HOSTS_CORE" ]] && {
         printf "$c_heading %s $c_reset %s\n" 'Moving:' "$HOSTS_SYSTEM to $HOSTS_CORE"
         install -Dm644 "$HOSTS_SYSTEM" "$HOSTS_CORE"
     }
