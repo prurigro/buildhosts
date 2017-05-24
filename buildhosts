@@ -29,7 +29,7 @@ default_sources=(
     'http://pgl.yoyo.org/adservers/serverlist.php?hostformat=hosts&showintro=0&mimetype=plaintext'
 )
 
-script_dependencies=('curl' 'sed')
+script_dependencies=('curl' 'mv' 'sed' 'sort')
 
 # Set the script name
 script_name="${0//*\/}"
@@ -121,6 +121,7 @@ function buildhosts_build {
 
             # Download the the current source into $source_data and fail if the result is empty
             source_data=$(curl -C - -s "$source" | tr -d "\r")
+
             [[ -n "$source_data" ]] \
                 || buildhosts_error "Could not download list @ $source"
 
@@ -203,7 +204,7 @@ done
 }
 
 # Fail if run with no commands
-[[ -z "$1" ]] && buildhosts_error "A valid command must be provided" 1
+[[ -z "$1" ]] && buildhosts_error 'A valid command must be provided' 1
 
 # Run the command entered by the user
 case "$1" in
@@ -217,6 +218,6 @@ case "$1" in
         buildhosts_help 1
         ;;
     *)
-        buildhosts_error "Invalid command" 1
+        buildhosts_error 'Invalid command' 1
         ;;
 esac
