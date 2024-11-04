@@ -24,9 +24,8 @@ done < <(env)
 # Default list of sources (used to generate $HOSTS_SOURCES when it doesn't exist)
 default_sources=(
     'https://adaway.org/hosts.txt'
-    'http://winhelp2002.mvps.org/hosts.txt'
-    'http://hosts-file.net/ad_servers.txt'
-    'http://pgl.yoyo.org/adservers/serverlist.php?hostformat=hosts&showintro=0&mimetype=plaintext'
+    'https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts'
+    'https://pgl.yoyo.org/adservers/serverlist.php?hostformat=hosts&showintro=0&mimetype=plaintext'
 )
 
 script_dependencies=('curl' 'mv' 'sed' 'sort')
